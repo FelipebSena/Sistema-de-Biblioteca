@@ -8,23 +8,6 @@
 #define MED 50
 #define MIN 15
 
-// PESQUISA
-typedef struct Pesquisa {
-
-    char cliente[MAX];
-    char NomeLivro[MED];
-    char autor[MED];
-
-} Pesquisa;
-
-// ACERVO
-typedef struct Acervo {
-
-    CadastroLivro livros[MAX];
-    int totalLivros;
-    
-} Acervo;
-
 // CADASTRO DO LIVRO
 typedef struct CadastroLivro {
 
@@ -36,13 +19,13 @@ typedef struct CadastroLivro {
     int mes;
     int ano;
     int quantidade;
-
+    
 } CadastroLivro;
 
 // CADASTRO DE ALUGUEL
 
 typedef struct CadastroAluguel {
-
+    
     int id;
     char cliente[MAX];
     char telefone[MIN];
@@ -51,13 +34,21 @@ typedef struct CadastroAluguel {
     char estado[30];
     char cidade[30];
     char endereco[MED];
+    char formaPagar[MED];
     int dia;
     int mes;
     int ano;
     float fatura;
-
+    
 } CadastroAluguel;
 
+// ACERVO
+typedef struct Acervo {
+
+    CadastroLivro livros[MAX];
+    int totalLivros;
+    
+} Acervo;
 
 // ALUGUEIS
 typedef struct Alugueis {
@@ -67,16 +58,24 @@ typedef struct Alugueis {
 
 } Alugueis;
 
-// REMOÇÃO
-typedef struct Remocao {
+int prazoAluguel (int diaAluguel, int mesAluguel, int anoAluguel) {
 
-    CadastroLivro livros[MAX];
-    CadastroAluguel alugueis[MAX];
+    time_t agora = time(NULL);
+    struct tm *dataAtual = localtime(&agora);
 
-    char cpf[MIN];
-    int id
+    struct tm dataAluguel = {0};
+    dataAluguel.tm_mday = diaAluguel;
+    dataAluguel.tm_mon = mesAluguel - 1;
+    dataAluguel.tm_year = anoAluguel - 1900;
 
-} Remocao;
+    dataAluguel.tm_mday += 30;
+    mktime(&dataAluguel);
+
+    time_t limite = mktime(&dataAluguel);
+    double diferenca = difftime(agora, limite);
+
+    return diferenca > 0;
+}
 
 int main(void) {
 
@@ -90,24 +89,6 @@ int main(void) {
     int OpRemocao = 0;
     char PsqLivro[MED];
     char retorno;
-    int prazoAluguel (int diaAluguel, int mesAluguel, int anoAluguel) {
-
-        time_t agora = time(NULL);
-        struct tm *dataAtual = localtime(&agora);
-
-        struct tm dataAluguel = {0};
-        dataAluguel.tm_mday = diaAluguel;
-        dataAluguel.tm_mon = mesAluguel - 1;
-        dataAluguel.tmyear = anoAluguel - 1900;
-
-        dataAluguel.tm_mday += 30;
-        mktime(&dataAluguel);
-
-        time_t limite = mktime(&dataAluguel);
-        double diferenca = difftime(agora, limite);
-
-        return diferenca > 0;
-    }
 
     // PONTEIROS
     Acervo Acrv = {0};
@@ -119,15 +100,8 @@ int main(void) {
     CadastroAluguel Caluguel;
     CadastroAluguel *cadastroaluguel = &Caluguel;
 
-    Pesquisa Psq;
-    Pesquisa *pesquisa = &Psq;
-
     Alugueis Algs = {0};
     Alugueis *alugueis = &Algs;
-
-    Remocao Rmc;
-    Remocao *remocao = &Rmc;
-
 
     do {
         printf("  +------------------------------------------+\n");
@@ -140,8 +114,8 @@ int main(void) {
         printf("  |                                          |\n");
         printf("  |[1]  Buscar                               |\n");
         printf("  |[2]  Registrar Livro                      |\n");
-        printf("  |[3]  Acervo                               |\n");
-        printf("  |[4]  Registrar Emprestimo                 |\n");
+        printf("  |[3]  Registrar Emprestimo                 |\n");
+        printf("  |[4]  Acervo                               |\n");
         printf("  |[5]  Alugueis                             |\n");
         printf("  |[6]  Remover                              |\n");
         printf("  |                                          |\n");
@@ -197,7 +171,7 @@ int main(void) {
 
                 break;
                 
-                case 2:
+            case 2:
                 
                 printf("////////// CADASTRO DE LIVROS ///////////\n");
                 
@@ -239,72 +213,52 @@ int main(void) {
                 
                 break;
                 
-                case 3:
-                
-                printf("<><><><><><><><><><> ACERVO <><><><><><><><><><>\n");
-                
-                for (i = 0; i < Acrv.totalLivros; i++) {
-                
-                printf("{ID[%d]. %s |Autor %s |Genero: %s |Lançamento %d/%d/%d |Quantidade: %d }\n", Acrv.livros[i].id, Acrv.livros[i].NomeLivro, Acrv.livros[i].autor,  Acrv.livros[i].genero,  Acrv.livros[i].dia, Acrv.livros[i].mes, Acrv.livros[i].ano,  Acrv.livros[i].quantidade);
-                                       
-                 }
-                
-                do {
-                
-                printf("Deseja retornar ao menu? [S/N]\n");
-                scanf(" %c", &retorno);
-                
-                if (retorno != 'S' && retorno != 'N') {
-                
-                printf("Erro! Digite apenas S ou N\n");
-                
-                while (getchar() != '\n');
-                
-                continue;
-                }
-                
-                } while (retorno != 'S' && retorno != 'N');
-                
-                break;
-            
-                case 4: 
+            case 3: 
 
                 printf("////////// CADASTRO DE ALUGUEIS ///////////\n");
-
+                
                 Algs.alugueis[Algs.totalAlugueis].id = ProximoLivroId;
                 ProximoLivroId++;
+                
+                while(getchar() != '\n');
 
                 printf("Nome: ");
                 fgets(Algs.alugueis[Algs.totalAlugueis].cliente, MAX, stdin);
-
+                
                 Algs.alugueis[Algs.totalAlugueis].cliente[strcspn(Algs.alugueis[Algs.totalAlugueis].cliente, "\n")] = '\0';
 
                 printf("Telefone: ");
                 scanf("%d", &Algs.alugueis[Algs.totalAlugueis].telefone);
 
+                while(getchar() != '\n');
+
                 printf("CPF: ");
-                scanf("%d", &Algs.alugueis[Algs.totalAlugueis].cpf);
+                fgets(Algs.alugueis[Algs.totalAlugueis].cpf, MIN stdin);
 
+                Algs.alugueis[Algs.totalAlugueis].cpf[strcspn(Algs.alugueis[Algs.totalAlugueis].cpf, "\n")] = '\0';
+                
                 printf("CEP: ");
-                scanf("%d", &Algs.alugueis[Algs.totalAlugueis].cep);
+                fgets(Algs.alugueis[Algs.totalAlugueis].cep, 10 stdin);
 
+                Algs.alugueis[Algs.totalAlugueis].cep[strcspn(Algs.alugueis[Algs.totalAlugueis].cep, "\n")] = '\0';
+                
                 while (getchar() != '\n');
-
+                
                 printf("Estado: ");
                 fgets(Algs.alugueis[Algs.totalAlugueis].estado, MAX, stdin);
-
+                
                 Algs.alugueis[Algs.totalAlugueis].estado[strcspn(Algs.alugueis[Algs.totalAlugueis].estado, "\n")] = '\0';
-
+                
                 printf("Cidade: ");
                 fgets(Algs.alugueis[Algs.totalAlugueis].cidade, MAX, stdin);
-
+                
                 Algs.alugueis[Algs.totalAlugueis].cidade[strcspn(Algs.alugueis[Algs.totalAlugueis].cidade, "\n")] = '\0';
-
+                
                 printf("Endereco: ");
                 fgets(Algs.alugueis[Algs.totalAlugueis].endereco, MAX, stdin);
-
+                
                 Algs.alugueis[Algs.totalAlugueis].endereco[strcspn(Algs.alugueis[Algs.totalAlugueis].endereco, "\n")] = '\0';
-
+                
                 printf("Prazo da reserva, digite apenas numeros.");
 
                 printf("Dia: ");
@@ -312,47 +266,77 @@ int main(void) {
 
                 printf("Mes: ");
                 scanf("%d", &Algs.alugueis[Algs.totalAlugueis].mes);
-
+                
                 printf("Ano: ");
                 scanf("%d", &Algs.alugueis[Algs.totalAlugueis].ano);
-
+                
                 printf("Valor total: ");
-                scanf("%.2lf", &Algs.alugueis[alugueis->totalAlugueis].fatura);
-
+                scanf("%f", &Algs.alugueis[alugueis->totalAlugueis].fatura);
+                
                 while(getchar() != '\n');
-
+                
                 printf("Forma de pagamento: ");
                 fgets(Algs.alugueis[Algs.totalAlugueis].formaPagar, MED, stdin);
-
+                
                 Algs.alugueis[Algs.totalAlugueis].formaPagar[strcspn(Algs.alugueis[Algs.totalAlugueis].formaPagar, "\n")] = '\0';
-
+                
                 printf("\nCadastro concluido com sucesso!!!\n");
-
+                
                 FILE *comprovante = fopen("comprovante.txt", "w");
-
-                 if (comprovante == NULL) {
-
-                   printf("Erro ao gerar comprovante!\n");
-
-                   } else {
-
+                
+                if (comprovante == NULL) {
+                    
+                    printf("Erro ao gerar comprovante!\n");
+                    
+                } else {
+                    
                     fprintf(comprovante, "========== COMPROVANTE DE ALUGUEL ==========\n");
                     fprintf(comprovante, "========== SISTEMA DE BIBLIOTECA ==========\n" );
                     fprintf(comprovante, "Nome:        %s\n", Algs.alugueis[Algs.totalAlugueis].cliente);
                     fprintf(comprovante, "CPF:         %s\n", Algs.alugueis[Algs.totalAlugueis].cpf);
-                    fprintf(comprovante, "ID:[%d]Livro:       %s\n", Acrv.livros[Acrv.totalLivros - 1].ID, Acrv.livros[Acrv.totalLivros - 1].NomeLivro);
+                    fprintf(comprovante, "ID:[%d]Livro:       %s\n", Acrv.livros[Acrv.totalLivros - 1].id, Acrv.livros[Acrv.totalLivros - 1].NomeLivro);
                     fprintf(comprovante, "Prazo:       %d/%d/%d\n", Algs.alugueis[Algs.totalAlugueis].dia, Algs.alugueis[Algs.totalAlugueis].mes, Algs.alugueis[Algs.totalAlugueis].ano);
                     fprintf(comprovante, "Taxa:        R$ %.2f\n", Algs.alugueis[Algs.totalAlugueis].fatura);
                     fprintf(comprovante, "============================================\n");
                     fclose(comprovante);
-
+                    
                     printf("Comprovante gerado com sucesso!\n");
+                    
+                    Algs.totalAlugueis++;
+                   
+                  }
+                    
+                    break;
 
-                Algs.totalAlugueis++;
+            case 4:
+                    
+                printf("<><><><><><><><><><> ACERVO <><><><><><><><><><>\n");
+                    
+                for (i = 0; i < Acrv.totalLivros; i++) {
+                    
+                printf("{ID[%d]. %s |Autor %s |Genero: %s |Lançamento %d/%d/%d |Quantidade: %d }\n", Acrv.livros[i].id, Acrv.livros[i].NomeLivro, Acrv.livros[i].autor,  Acrv.livros[i].genero,  Acrv.livros[i].dia, Acrv.livros[i].mes, Acrv.livros[i].ano,  Acrv.livros[i].quantidade);
+                                           
+                    }
+                    
+                do {
+                    
+                printf("Deseja retornar ao menu? [S/N]\n");
+                scanf(" %c", &retorno);
+                    
+                if (retorno != 'S' && retorno != 'N') {
+                    
+                printf("Erro! Digite apenas S ou N\n");
+                    
+                while (getchar() != '\n');
+                    
+                continue;
+                }
+                    
+                } while (retorno != 'S' && retorno != 'N');
 
                 break;
 
-                case 5:
+            case 5:
 
                 printf("<><><><><><><><><><> ALUGUEIS <><><><><><><><><><>\n");
                 printf("Digite a data de hoje para a atualizacao dos alugueis");
@@ -361,7 +345,7 @@ int main(void) {
                 
                 for(i = 0; i <= Algs.totalAlugueis; i++) {
                     
-                    if(prazoAluguel(dia, mes, ano)) {
+                    if(prazoAluguel(Algs.alugueis[i].dia, Algs.alugueis[i].mes, Algs.alugueis[i].ano)) {
                         
                         printf("|                                                     ><><>FORA DO PRAZO<><><                                                         |\n\n\n");
                         printf("|ID|NOME                                        |TELEFONE       |ID|LIVRO                                            |PRAZO   |Fatura    |");
@@ -378,7 +362,7 @@ int main(void) {
                     break;
                 }
 
-                case 6:
+            case 6:
 
                 printf("O que deseja deletar?\n");
                 printf("[1].Livro.\n");
@@ -393,7 +377,7 @@ int main(void) {
                 if (OpRemocao = 1) {
 
                     printf("Digite o ID do livro que deseja remover: ");
-                    scanf("%d" &OpID);
+                    scanf("%d", &OpID);
 
                     for (i = 0; i < Acrv.totalLivros; i++) {
 
@@ -425,11 +409,12 @@ int main(void) {
 
                             break;
                         }
-
+    
                     }
                 }
         }
-    } while (OpMenu != 0);
+
+   } while (OpMenu != 0);
     
     return 0;
 }
